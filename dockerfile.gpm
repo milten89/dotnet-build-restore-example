@@ -1,0 +1,15 @@
+FROM mcr.microsoft.com/dotnet/sdk:7.0-alpine AS build
+
+WORKDIR /workspace
+COPY "api.gpm/api.csproj" "/workspace"
+COPY "api.gpm/Directory.Packages.props" "/workspace"
+RUN dotnet restore "api.csproj"
+COPY "api.gpm" "/workspace"
+RUN dotnet publish "api.csproj" -c Release -o "/workspace/publish" --no-restore
+
+FROM mcr.microsoft.com/dotnet/aspnet:7.0-alpine AS runtime
+
+WORKDIR /app
+COPY --from=build /workspace/publish .
+EXPOSE 80
+ENTRYPOINT ["dotnet", "api.dll"]
